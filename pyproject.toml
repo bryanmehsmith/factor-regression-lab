@@ -10,7 +10,13 @@ requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.11.0",
     "numpy>=2.5.1",
-    "pandas>=3.0.3",
+    # Pinned below 3.0 deliberately. On pandas 3.0.5 this app segfaults (SIGSEGV,
+    # not an exception) the second time a session runs, inside pandas building a
+    # pyarrow-backed string array for a list of column labels. Streamlit runs each
+    # session in a new thread, so in practice every second visitor crashed the
+    # process. pandas 2.x does not use Arrow-backed strings by default and does
+    # not exhibit it. Revisit when pandas 3.0.x has settled.
+    "pandas>=2.2.3,<3",
     "pyarrow>=24.0.0",
     "scipy>=1.15.0",
     "statsmodels>=0.14.6",
