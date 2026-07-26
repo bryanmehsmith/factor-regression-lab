@@ -10,14 +10,23 @@ requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.11.0",
     "numpy>=2.5.1",
-    # Pinned below 3.0 deliberately. On pandas 3.0.5 this app segfaults (SIGSEGV,
-    # not an exception) the second time a session runs, inside pandas building a
-    # pyarrow-backed string array for a list of column labels. Streamlit runs each
-    # session in a new thread, so in practice every second visitor crashed the
-    # process. pandas 2.x does not use Arrow-backed strings by default and does
-    # not exhibit it. Revisit when pandas 3.0.x has settled.
+    # Both pins below exist for one bug: this app segfaulted (SIGSEGV, not an
+    # exception) the second time a session ran. Streamlit runs each session's
+    # script in a new thread, so the first visitor was served and the next one
+    # killed the process; a supervisor restarting it turned that into an
+    # intermittent "Connection error".
+    #
+    # Bisecting by disabling parts of the app showed the trigger is st.dataframe,
+    # which serializes through pyarrow. Disabling it gave 6/6 clean sessions
+    # against 1/6 with it. Every faulthandler traceback landed inside pyarrow's
+    # pandas conversion. Figures, BLAS thread counts and pandas Stylers were each
+    # ruled out by experiment, so the pin is on pyarrow.
+    #
+    # pandas stays below 3.0 as well: 3.0 makes pyarrow-backed strings the
+    # default, which widens exactly the surface that crashes here.
     "pandas>=2.2.3,<3",
-    "pyarrow>=24.0.0",
+    # See the note on pandas above: pyarrow 25.0.0 is where this app segfaults.
+    "pyarrow>=18,<19",
     "scipy>=1.15.0",
     "statsmodels>=0.14.6",
     "streamlit>=1.38",
