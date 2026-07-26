@@ -1,0 +1,31 @@
+name: Bump demo-site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout demo-site
+        uses: actions/checkout@v4
+        with:
+          repository: bryanmehsmith/demo-site
+          token: ${{ secrets.DEMO_SITE_PAT }}
+
+      - name: Bump factor-regression submodule to this commit
+        env:
+          NEW_SHA: ${{ github.sha }}
+        run: |
+          CURRENT_SHA=$(git rev-parse HEAD:apps/factor-regression)
+          if [ "$CURRENT_SHA" = "$NEW_SHA" ]; then
+            echo "demo-site already points at $NEW_SHA, nothing to do."
+            exit 0
+          fi
+          git update-index --cacheinfo 160000,"$NEW_SHA",apps/factor-regression
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "Bump factor-regression demo to ${NEW_SHA:0:7}"
+          git push
