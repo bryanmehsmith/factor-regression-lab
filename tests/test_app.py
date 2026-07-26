@@ -43,10 +43,16 @@ def test_app_renders_with_defaults():
 
 
 def test_app_offers_a_way_back_to_the_landing_page():
-    """The demo is served under /demos/<slug>, so the link must be root-relative."""
+    """Root-relative because the demo is served under /demos/<slug>, and same-tab.
+
+    A new tab would leave this demo's session (and its process) alive behind the
+    reader, so target="_self" is load-bearing rather than cosmetic.
+    """
     app = _run()
 
-    assert any("](/)" in str(block.value) for block in app.markdown)
+    links = [str(block.value) for block in app.markdown if 'href="/"' in str(block.value)]
+    assert links, "no root-relative link back to the landing page"
+    assert any('target="_self"' in link for link in links), "link would open in a new tab"
 
 
 def test_app_renders_the_simplest_model():

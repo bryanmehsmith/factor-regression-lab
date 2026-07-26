@@ -45,7 +45,12 @@ st.caption(
 with st.sidebar:
     # Root-relative, so it resolves to the demo-site landing page rather than
     # anywhere inside this app's /demos/factor-regression base path.
-    st.markdown("[Back to all demos](/)")
+    #
+    # Written as HTML purely to force target="_self". Streamlit's markdown links
+    # and st.link_button both open a new tab, which leaves this demo's tab (and so
+    # its websocket, and so its process) alive behind the reader. Navigating in
+    # place lets the session close and the launcher reclaim the memory.
+    st.markdown('<a href="/" target="_self">Back to all demos</a>', unsafe_allow_html=True)
     st.header("Regression settings")
 
     # Widgets carry explicit keys so the app tests can address them by name
