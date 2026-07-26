@@ -11,22 +11,25 @@ INDUSTRY_SOURCE = "French industry portfolios"
 TICKER_SOURCE = "Yahoo Finance ticker"
 
 
-@st.cache_data(ttl=3600, show_spinner="Loading factor returns...")
+# Caches are bounded. The container runs on a small memory allocation shared with
+# the other demos, and `load_ticker` in particular keys on a free-text ticker box,
+# so an unbounded cache would grow without limit as visitors try symbols.
+@st.cache_data(ttl=3600, max_entries=2, show_spinner="Loading factor returns...")
 def load_factors(force_refresh: bool) -> pd.DataFrame:
     return data.load_factors(force_refresh=force_refresh)
 
 
-@st.cache_data(ttl=3600, show_spinner="Loading industry portfolios...")
+@st.cache_data(ttl=3600, max_entries=2, show_spinner="Loading industry portfolios...")
 def load_industries(force_refresh: bool) -> pd.DataFrame:
     return data.load_industry_portfolios(force_refresh=force_refresh)
 
 
-@st.cache_data(ttl=3600, show_spinner="Downloading prices from Yahoo Finance...")
+@st.cache_data(ttl=3600, max_entries=8, show_spinner="Downloading prices from Yahoo Finance...")
 def load_ticker(ticker: str) -> pd.Series:
     return data.load_yfinance_asset(ticker)
 
 
-@st.cache_data
+@st.cache_data(max_entries=1)
 def load_catalog() -> pd.DataFrame:
     return data.load_test_asset_catalog()
 
@@ -40,6 +43,9 @@ st.caption(
 )
 
 with st.sidebar:
+    # Root-relative, so it resolves to the demo-site landing page rather than
+    # anywhere inside this app's /demos/factor-regression base path.
+    st.markdown("[Back to all demos](/)")
     st.header("Regression settings")
 
     # Widgets carry explicit keys so the app tests can address them by name

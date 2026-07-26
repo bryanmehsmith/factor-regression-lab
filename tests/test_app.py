@@ -42,6 +42,13 @@ def test_app_renders_with_defaults():
     assert len(app.metric) >= 4
 
 
+def test_app_offers_a_way_back_to_the_landing_page():
+    """The demo is served under /demos/<slug>, so the link must be root-relative."""
+    app = _run()
+
+    assert any("](/)" in str(block.value) for block in app.markdown)
+
+
 def test_app_renders_the_simplest_model():
     """CAPM has no simpler model to test against, so section 3 must not blow up."""
     app = _run(model="CAPM")

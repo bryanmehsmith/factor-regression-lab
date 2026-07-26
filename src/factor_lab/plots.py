@@ -8,7 +8,11 @@ from statsmodels.graphics.tsaplots import plot_acf
 
 from factor_lab.regression import FactorRegression
 
-FIG_WIDTH = 10
+FIG_WIDTH = 9
+# Every figure is rasterized and held in the page for the session, so resolution
+# is a memory cost paid per chart. 90 stays legible while trimming the buffers on
+# a container that shares 1 GiB with the other demos.
+DPI = 90
 
 
 def tstat_comparison(comparison: pd.DataFrame, threshold: float = 1.96) -> Figure:
@@ -26,7 +30,7 @@ def tstat_comparison(comparison: pd.DataFrame, threshold: float = 1.96) -> Figur
     positions = np.arange(len(terms))
     bar_width = 0.8 / len(se_types)
 
-    figure = Figure(figsize=(FIG_WIDTH, 4.5))
+    figure = Figure(dpi=DPI, figsize=(FIG_WIDTH, 4.5))
     axes = figure.add_subplot(111)
 
     for offset, se_type in enumerate(se_types):
@@ -58,7 +62,7 @@ def diagnostics_grid(regression: FactorRegression) -> Figure:
     residuals = regression.residuals
     fitted = regression.fitted
 
-    figure = Figure(figsize=(FIG_WIDTH, 7))
+    figure = Figure(dpi=DPI, figsize=(FIG_WIDTH, 7))
     top_left, top_right, bottom_left, bottom_right = (
         figure.add_subplot(221),
         figure.add_subplot(222),
@@ -101,7 +105,7 @@ def diagnostics_grid(regression: FactorRegression) -> Figure:
 
 def rolling_term(term: str, estimates: pd.DataFrame, full_sample: float | None = None) -> Figure:
     """One rolling coefficient with its 95% band, against the full-sample value."""
-    figure = Figure(figsize=(FIG_WIDTH, 4))
+    figure = Figure(dpi=DPI, figsize=(FIG_WIDTH, 4))
     axes = figure.add_subplot(111)
 
     axes.plot(estimates.index, estimates["estimate"], linewidth=1.2, label=f"Rolling {term}")
@@ -130,7 +134,7 @@ def rolling_term(term: str, estimates: pd.DataFrame, full_sample: float | None =
 
 def correlation_heatmap(correlations: pd.DataFrame) -> Figure:
     """Regressor correlation matrix, the raw material behind the VIFs."""
-    figure = Figure(figsize=(6.5, 5.5))
+    figure = Figure(dpi=DPI, figsize=(6.5, 5.5))
     axes = figure.add_subplot(111)
 
     image = axes.imshow(correlations, cmap="RdBu_r", vmin=-1, vmax=1)
@@ -168,7 +172,7 @@ def cumulative_fit(regression: FactorRegression) -> Figure:
     actual = regression.frame["excess"]
     explained = regression.fitted
 
-    figure = Figure(figsize=(FIG_WIDTH, 4.5))
+    figure = Figure(dpi=DPI, figsize=(FIG_WIDTH, 4.5))
     axes = figure.add_subplot(111)
     axes.plot((1 + actual).cumprod(), linewidth=1.2, label="Actual excess return")
     axes.plot(
