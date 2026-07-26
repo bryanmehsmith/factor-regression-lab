@@ -1,0 +1,42 @@
+[project]
+name = "factor-regression-lab"
+version = "0.1.0"
+description = "Factor regression and inference lab: is an asset's excess return alpha, or just factor exposure?"
+readme = "README.md"
+authors = [
+    { name = "Bryan Smith", email = "" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.0",
+    "numpy>=2.5.1",
+    "pandas>=3.0.3",
+    "pyarrow>=24.0.0",
+    "scipy>=1.15.0",
+    "statsmodels>=0.14.6",
+    "streamlit>=1.38",
+    "yfinance>=1.5.1",
+]
+
+[project.scripts]
+factor-regression-lab = "factor_lab:main"
+
+[build-system]
+requires = ["uv_build>=0.11.26,<0.12.0"]
+build-backend = "uv_build"
+
+# The distribution is "factor-regression-lab" but the import package is the
+# shorter "factor_lab", so the backend needs to be told explicitly.
+[tool.uv.build-backend]
+module-name = "factor_lab"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: exercises the Streamlit app end to end; deselect with -m 'not slow'",
+]
