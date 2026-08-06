@@ -1,6 +1,6 @@
 # Factor Regression Lab
 
-Factor regression and statistical inference on US equity returns, using the Ken French Data Library for both the factors and the test portfolios.
+Factor regression and statistical inference on US equity returns. Factors come from the Ken French Data Library; the test asset is either one of French's 17 industry portfolios or any Yahoo Finance ticker.
 
 The demo answers one question as carefully as it can: **when an asset beats the market, is that skill, or is it factor exposure, and is whatever remains statistically distinguishable from zero?**
 
@@ -25,7 +25,7 @@ This is why the demo lets you switch between nested models:
 
 Watching alpha decay as factors are added is the single most useful thing here. It is also a warning: with enough factors you can explain away almost any track record, so "controlling for" more is not automatically more rigorous.
 
-A note on construction. Every factor in this project comes from the 5-factor file rather than mixing in the standalone 3-factor file. The two define SMB slightly differently and start in different years. Taking them all from one source keeps FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test in section 3 a real test rather than an apples-to-oranges comparison.
+A note on construction. Mkt-RF, SMB and HML all come from the 5-factor file rather than the standalone 3-factor file, which defines SMB slightly differently and starts in a different year. Taking them from one source keeps FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test in section 3 a real test rather than an apples-to-oranges comparison. Momentum has no such conflict to avoid, so it is sourced from its own separate French file.
 
 ## Why the standard error decides the answer
 
@@ -35,7 +35,7 @@ The point estimate never changes. What changes is the standard error, and with i
 
 - **Classical (OLS)** assumes residuals are independent of each other and have constant variance. Under those assumptions it is the most efficient choice. Asset returns violate both.
 - **White (HC1)** drops constant variance. Volatility clusters in markets, so residual spread is genuinely larger in some periods than others; this correction accounts for it.
-- **Newey-West (HAC)** additionally allows residuals to be correlated across months. This matters most, because positive residual autocorrelation makes 755 monthly observations behave like far fewer independent ones. Classical standard errors treat every month as fresh evidence, understate uncertainty, and inflate the t-statistic accordingly.
+- **Newey-West (HAC)** additionally allows residuals to be correlated across months. This matters most, because positive residual autocorrelation makes the several hundred monthly observations behave like far fewer independent ones. Classical standard errors treat every month as fresh evidence, understate uncertainty, and inflate the t-statistic accordingly.
 
 Each step weakens an assumption, and usually widens the interval. **An alpha whose t-statistic clears 1.96 under classical errors but not under Newey-West was never significant; the first number was an artifact of assuming away serial correlation.** Section 2 of the app puts all three side by side for exactly this reason, and the residual diagnostics in section 4 tell you which one you are entitled to quote.
 
@@ -49,7 +49,7 @@ Two more things the app makes visible, both of which are routinely skipped:
 ## What this does not do
 
 - Alpha here is gross of costs, fees, and taxes. Real implementation would consume much of it.
-- The test assets are US portfolios, because that is what French publishes. There is no comparable free factor library for the JSE.
+- The industry portfolios and bundled ticker catalog are US only, because that is what French publishes and what the catalog was seeded with; the free-text ticker box will take any Yahoo Finance symbol, but there is no comparable free factor library for non-US markets like the JSE to properly evaluate one.
 - The factors are treated as known and error-free. They are themselves estimated portfolios.
 - Statistical significance is not economic significance, and this is a single regression on a single asset with no correction for the fact that you can click through dozens of them looking for a low p-value. That multiple-comparisons problem deserves its own demo.
 
