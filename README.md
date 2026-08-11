@@ -106,4 +106,4 @@ Both paths degrade rather than crash: fresh cache, then live download, then stal
 
 ## Scope
 
-The coding, architecture, and infrastructure choices here are proof-of-concept appropriate, not indicative of an enterprise setup; a company environment would warrant a different strategy. For research and education only, not investment advice.
+The coding, architecture, and infrastructure choices here are proof-of-concept appropriate, not indicative of an enterprise setup; a company environment would warrant a different strategy. For research and education only, not investment advice. Personal project using public data only; not affiliated with or representative of my employer.
