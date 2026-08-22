@@ -68,7 +68,8 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self._json(404, {"error": f"unknown route {parsed.path!r}"})
         except Exception as exc:
-            self._json(502, {"error": f"{type(exc).__name__}: {exc}"})
+            print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+            self._json(502, {"error": "internal error"})
 
     def log_message(self, format: str, *args) -> None:
         pass

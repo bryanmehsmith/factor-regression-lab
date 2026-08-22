@@ -7,6 +7,7 @@
 <meta name="description" content="Is an asset's excess return alpha, or factor exposure? An interactive Fama-French factor regression lab.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23fffdf9'/%3E%3Ctext x='50' y='66' font-family='Helvetica Neue,Arial,sans-serif' font-size='40' font-weight='700' fill='%237a4f22' text-anchor='middle'%3EBS%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
 </head>
 <body>
   <header class="header">
@@ -24,7 +25,7 @@
       <p>"This fund returned 14% a year" is not a finding. The question is always 14% <em>compared to what</em>, and the honest comparison is not a single index but a set of systematic risks the investor could have taken deliberately and cheaply. That comparison is a regression: take an asset's return in excess of the risk-free rate, and explain it with the returns of portfolios built to capture known systematic exposures.</p>
       <details class="tech">
         <summary>Technical detail</summary>
-        <p><code>excess_return = alpha + b1*(Mkt-RF) + b2*SMB + b3*HML + ... + residual</code>. Each beta says how much of the asset's behaviour is that exposure. Alpha, the intercept, is the average monthly return the factors fail to explain, and it is defined entirely by which factors sit on the right-hand side: add a factor that genuinely drives the asset and alpha shrinks, since the "skill" was an exposure not yet named. <strong>CAPM</strong> is the market alone; <strong>FF3</strong> adds size (SMB) and value (HML); <strong>FF5</strong> adds profitability (RMW) and investment (CMA); <strong>FF5+Mom</strong> adds momentum. Mkt-RF, SMB and HML all come from the 5-factor file rather than the standalone 3-factor file (which defines SMB slightly differently and starts in a different year), keeping FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test below valid.</p>
+        <p>\[ R_i - R_f = \alpha + \beta_1(\text{Mkt-RF}) + \beta_2\,\text{SMB} + \beta_3\,\text{HML} + \cdots + \varepsilon \] Each beta says how much of the asset's behaviour is that exposure. Alpha, the intercept, is the average monthly return the factors fail to explain, and it is defined entirely by which factors sit on the right-hand side: add a factor that genuinely drives the asset and alpha shrinks, since the "skill" was an exposure not yet named. <strong>CAPM</strong> is the market alone; <strong>FF3</strong> adds size (SMB) and value (HML); <strong>FF5</strong> adds profitability (RMW) and investment (CMA); <strong>FF5+Mom</strong> adds momentum. Mkt-RF, SMB and HML all come from the 5-factor file rather than the standalone 3-factor file (which defines SMB slightly differently and starts in a different year), keeping FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test below valid.</p>
       </details>
     </section>
 
@@ -33,7 +34,7 @@
       <p>Getting alpha is easy. Deciding whether it is distinguishable from zero is where the work is, and it depends on assumptions about the residuals that are rarely stated out loud. The point estimate never changes; what changes is the standard error, and with it the t-statistic.</p>
       <details class="tech">
         <summary>Technical detail</summary>
-        <p><strong>Classical (OLS)</strong> assumes residuals are independent with constant variance; asset returns violate both. <strong>White (HC1)</strong> drops constant variance, accounting for volatility clustering. <strong>Newey-West (HAC)</strong> additionally allows residuals to be correlated across months, which matters most: positive residual autocorrelation makes several hundred monthly observations behave like far fewer independent ones, so classical errors understate uncertainty and inflate the t-statistic. An alpha whose t-statistic clears 1.96 under classical errors but not under Newey-West was never really significant. The HAC lag length is a judgment call exposed as a control below rather than hidden; the common default is <code>floor(4 * (n/100)^(2/9))</code>, but nothing makes it correct.</p>
+        <p><strong>Classical (OLS)</strong> assumes residuals are independent with constant variance; asset returns violate both. <strong>White (HC1)</strong> drops constant variance, accounting for volatility clustering. <strong>Newey-West (HAC)</strong> additionally allows residuals to be correlated across months, which matters most: positive residual autocorrelation makes several hundred monthly observations behave like far fewer independent ones, so classical errors understate uncertainty and inflate the t-statistic. An alpha whose t-statistic clears 1.96 under classical errors but not under Newey-West was never really significant. The HAC lag length is a judgment call exposed as a control below rather than hidden; the common default is \(\left\lfloor 4\left(\frac{n}{100}\right)^{2/9}\right\rfloor\), but nothing makes it correct.</p>
       </details>
     </section>
 
@@ -191,6 +192,8 @@
     <p class="disclaimer">Data: Ken French Data Library (Dartmouth) for factors and industry portfolios, Yahoo Finance via yfinance for individual tickers, with bundled fallback snapshots. The momentum signal, regression, diagnostics, and rolling estimates all run client-side in your browser; a small backend is used only for live data refresh and ticker lookups. See the <a href="https://github.com/bryanmehsmith/factor-regression-lab" target="_blank" rel="noopener">Python reference implementation and tests</a> this is ported from. For research and education only, not investment advice.</p>
   </main>
 
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/katex/contrib/auto-render.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

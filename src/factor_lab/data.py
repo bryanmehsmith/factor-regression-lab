@@ -221,7 +221,7 @@ def load_yfinance_asset(ticker: str, start: str = "1990-01-01") -> pd.Series:
     """
     import yfinance as yf
 
-    raw = yf.download(ticker, start=start, auto_adjust=True, progress=False)
+    raw = yf.download(ticker, start=start, auto_adjust=True, progress=False, timeout=60)
     if raw is None or raw.empty:
         raise ValueError(f"yfinance returned no data for {ticker!r}")
 

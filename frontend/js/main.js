@@ -19,6 +19,13 @@ const MODEL_ORDER = Object.keys(FACTOR_MODELS);
 
 wireDisclosureControls(document.body);
 
+renderMathInElement(document.querySelector("main"), {
+  delimiters: [
+    { left: "\\[", right: "\\]", display: true },
+    { left: "\\(", right: "\\)", display: false },
+  ],
+});
+
 const el = (id) => document.getElementById(id);
 const industrySelect = el("industry-select");
 const industryField = el("industry-field");
