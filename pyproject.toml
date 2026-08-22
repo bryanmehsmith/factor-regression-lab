@@ -10,15 +10,13 @@ requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.11.0",
     "numpy>=2.5.1",
-    # Both pins below exist for one bug that no longer applies now that the
-    # interactive demo is app/api.py (stdlib only, no Streamlit) rather than
-    # the old Streamlit app: this app used to segfault (SIGSEGV, not an
-    # exception) the second time a Streamlit session ran, because Streamlit
-    # runs each session's script in a new thread and the trigger, bisected to
-    # st.dataframe's pyarrow-based serialization, doesn't exist anywhere in
-    # api.py. Left in place anyway since nothing requires bumping them.
-    "pandas>=2.2.3,<3",
-    "pyarrow>=18,<19",
+    # Used to be capped below pandas 3 / pyarrow 19 to dodge a Streamlit
+    # SIGSEGV: st.dataframe's pyarrow-based serialization segfaulted the
+    # second time a Streamlit session ran. That trigger doesn't exist since
+    # the interactive demo moved to app/api.py (stdlib only, no Streamlit).
+    # Bumped to match momentum-factor so the two share one uv workspace venv.
+    "pandas>=3.0.3",
+    "pyarrow>=24.0.0",
     "scipy>=1.15.0",
     "statsmodels>=0.14.6",
     "yfinance>=1.5.1",
