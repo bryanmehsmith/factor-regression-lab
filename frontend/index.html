@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Factor Regression Lab / Bryan Smith</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Is an asset's excess return alpha, or factor exposure? An interactive Fama-French factor regression lab.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23fffdf9'/%3E%3Ctext x='50' y='66' font-family='Helvetica Neue,Arial,sans-serif' font-size='40' font-weight='700' fill='%237a4f22' text-anchor='middle'%3EBS%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>Factor Regression Lab</h1>
+      <a class="back-link" href="/" target="_self">&larr; Back to all demos</a>
+    </div>
+  </header>
+
+  <main>
+    <p class="intro">When an asset beats the market, is that skill or is it factor exposure? Regress its excess return on the Fama-French factors: the intercept is what the factors cannot explain, and the standard errors decide whether that intercept means anything.</p>
+
+    <section class="module-section">
+      <h3>Why alpha only means something relative to a model</h3>
+      <p>"This fund returned 14% a year" is not a finding. The question is always 14% <em>compared to what</em>, and the honest comparison is not a single index but a set of systematic risks the investor could have taken deliberately and cheaply. That comparison is a regression: take an asset's return in excess of the risk-free rate, and explain it with the returns of portfolios built to capture known systematic exposures.</p>
+      <details class="tech">
+        <summary>Technical detail</summary>
+        <p><code>excess_return = alpha + b1*(Mkt-RF) + b2*SMB + b3*HML + ... + residual</code>. Each beta says how much of the asset's behaviour is that exposure. Alpha, the intercept, is the average monthly return the factors fail to explain, and it is defined entirely by which factors sit on the right-hand side: add a factor that genuinely drives the asset and alpha shrinks, since the "skill" was an exposure not yet named. <strong>CAPM</strong> is the market alone; <strong>FF3</strong> adds size (SMB) and value (HML); <strong>FF5</strong> adds profitability (RMW) and investment (CMA); <strong>FF5+Mom</strong> adds momentum. Mkt-RF, SMB and HML all come from the 5-factor file rather than the standalone 3-factor file (which defines SMB slightly differently and starts in a different year), keeping FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test below valid.</p>
+      </details>
+    </section>
+
+    <section class="module-section">
+      <h3>Why the standard error decides the answer</h3>
+      <p>Getting alpha is easy. Deciding whether it is distinguishable from zero is where the work is, and it depends on assumptions about the residuals that are rarely stated out loud. The point estimate never changes; what changes is the standard error, and with it the t-statistic.</p>
+      <details class="tech">
+        <summary>Technical detail</summary>
+        <p><strong>Classical (OLS)</strong> assumes residuals are independent with constant variance; asset returns violate both. <strong>White (HC1)</strong> drops constant variance, accounting for volatility clustering. <strong>Newey-West (HAC)</strong> additionally allows residuals to be correlated across months, which matters most: positive residual autocorrelation makes several hundred monthly observations behave like far fewer independent ones, so classical errors understate uncertainty and inflate the t-statistic. An alpha whose t-statistic clears 1.96 under classical errors but not under Newey-West was never really significant. The HAC lag length is a judgment call exposed as a control below rather than hidden; the common default is <code>floor(4 * (n/100)^(2/9))</code>, but nothing makes it correct.</p>
+      </details>
+    </section>
+
+    <section class="module-section" id="widget">
+      <h3>Try it</h3>
+      <div class="field-row">
+        <div class="field">
+          <label>Test asset from</label>
+          <div class="radio-row">
+            <label><input type="radio" name="source" value="industry" checked> French industry portfolios</label>
+            <label><input type="radio" name="source" value="ticker"> Yahoo Finance ticker</label>
+          </div>
+        </div>
+        <div class="field" id="industry-field">
+          <label for="industry-select">Industry portfolio</label>
+          <select id="industry-select"></select>
+        </div>
+        <div class="field" id="ticker-field" style="display:none;">
+          <label for="ticker-select">Ticker</label>
+          <select id="ticker-select"></select>
+          <input type="text" id="custom-ticker" placeholder="or type any ticker">
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <label class="toggle-switch">
+          <input type="checkbox" id="live-refresh">
+          <span class="toggle-slider"></span>
+        </label>
+        <label for="live-refresh">Try a live data refresh (French factors/industries; a ticker is always fetched live)</label>
+      </div>
+      <p class="live-status" id="live-status"></p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="model-select">Factor model</label>
+          <select id="model-select">
+            <option value="CAPM">CAPM</option>
+            <option value="FF3">FF3</option>
+            <option value="FF5" selected>FF5</option>
+            <option value="FF5+Mom">FF5+Mom</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="se-select">Standard errors for the headline</label>
+          <select id="se-select">
+            <option value="Classical (OLS)">Classical (OLS)</option>
+            <option value="White (HC1)">White (HC1)</option>
+            <option value="Newey-West (HAC)" selected>Newey-West (HAC)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="hac-slider">HAC lag length: <span class="slider-output" id="hac-output">6</span> months</label>
+          <input type="range" id="hac-slider" min="0" max="36" value="6" step="1">
+        </div>
+        <div class="field">
+          <label for="window-slider">Rolling window: <span class="slider-output" id="window-output">60</span> months</label>
+          <input type="range" id="window-slider" min="24" max="180" value="60" step="12">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field" style="flex:2;">
+          <label for="start-year-slider">Sample period: <span class="slider-output" id="period-output">-</span></label>
+          <input type="range" id="start-year-slider" min="0" max="0" value="0" step="1">
+          <input type="range" id="end-year-slider" min="0" max="0" value="0" step="1">
+        </div>
+      </div>
+
+      <div class="callout callout-unsafe" id="empty-warning" style="display:none;"></div>
+    </section>
+
+    <div id="results" style="display:none;">
+      <section class="module-section">
+        <h3 id="asset-title"></h3>
+        <p class="module-lede" id="asset-caption"></p>
+        <div class="callout" id="verdict-callout"></div>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-value" id="metric-alpha">-</span><span class="metric-label">Annualized alpha</span></div>
+          <div class="metric"><span class="metric-value" id="metric-tstat-label">t-stat</span><span class="metric-label" id="metric-tstat-sub"></span></div>
+          <div class="metric"><span class="metric-value" id="metric-adjr2">-</span><span class="metric-label">Adjusted R-squared</span></div>
+          <div class="metric"><span class="metric-value" id="metric-months">-</span><span class="metric-label">Months</span></div>
+        </div>
+      </section>
+
+      <section class="module-section">
+        <h3>1. Coefficients</h3>
+        <p class="module-lede"><code>alpha</code> is the monthly intercept: average excess return the factors leave unexplained. Each beta is the asset's exposure to that factor. The confidence interval is the range of values the data cannot rule out at 95%.</p>
+        <div class="table-wrap"><table id="coefficient-table"><thead><tr><th>term</th><th>estimate</th><th>std error</th><th>t stat</th><th>p value</th><th>95% CI</th></tr></thead><tbody></tbody></table></div>
+      </section>
+
+      <section class="module-section">
+        <h3>2. The same regression, three assumptions about the residuals</h3>
+        <p class="module-lede">The estimates in these three blocks are identical; only the uncertainty around them changes. Each weaker assumption is more honest and usually widens the interval, so a t-statistic that clears 1.96 in the first column and not the third was never really significant.</p>
+        <div class="chart-wrap" id="tstat-chart"></div>
+        <details class="tech">
+          <summary>Full comparison table</summary>
+          <div class="table-wrap"><table id="se-comparison-table"></table></div>
+        </details>
+      </section>
+
+      <section class="module-section" id="nested-section">
+        <h3>3. Does the richer model earn its place?</h3>
+        <p class="module-lede" id="nested-caption"></p>
+        <div id="nested-body">
+          <div class="metric-row">
+            <div class="metric"><span class="metric-value" id="metric-nested-p">-</span><span class="metric-label">Joint test p-value</span></div>
+            <div class="metric"><span class="metric-value" id="metric-nested-r2">-</span><span class="metric-label">Adjusted R-squared</span></div>
+            <div class="metric"><span class="metric-value" id="metric-nested-alpha">-</span><span class="metric-label">Annualized alpha</span></div>
+          </div>
+          <p id="nested-verdict"></p>
+        </div>
+      </section>
+
+      <section class="module-section">
+        <h3>4. Are the OLS assumptions actually met?</h3>
+        <p class="module-lede">These tests decide which column in section 2 deserves to be quoted. The residual plots show the same thing visually.</p>
+        <div class="table-wrap"><table id="diagnostics-table"><thead><tr><th>test</th><th>statistic</th><th>p value</th><th>null hypothesis</th><th>flag</th></tr></thead><tbody></tbody></table></div>
+        <div id="diagnostics-details"></div>
+        <div class="diagnostics-grid">
+          <div class="chart-wrap" id="residual-scatter-chart"></div>
+          <div class="chart-wrap" id="qq-chart"></div>
+          <div class="chart-wrap" id="acf-chart"></div>
+          <div class="chart-wrap" id="histogram-chart"></div>
+        </div>
+      </section>
+
+      <section class="module-section">
+        <h3>5. Can the individual betas be trusted?</h3>
+        <p class="module-lede">Correlated factors inflate each other's standard errors. A high VIF does not bias the estimates or spoil the fit; it means that particular coefficient is hard to pin down, which is how a model can be jointly strong with no individually significant factor.</p>
+        <div class="field-row">
+          <div class="field" style="flex:1;"><div class="table-wrap"><table id="vif-table"><thead><tr><th>regressor</th><th>VIF</th></tr></thead><tbody></tbody></table></div></div>
+          <div class="field" style="flex:1;"><div class="chart-wrap" id="correlation-chart"></div></div>
+        </div>
+      </section>
+
+      <section class="module-section">
+        <h3>6. Is one number per factor even the right summary?</h3>
+        <p class="module-lede">Re-estimating over a rolling window shows how much the full-sample coefficients are averages of genuinely different regimes. Bands are indicative classical intervals.</p>
+        <div class="field">
+          <label for="rolling-term-select">Show rolling estimate for</label>
+          <select id="rolling-term-select"></select>
+        </div>
+        <div class="table-wrap"><table id="stability-table"><thead><tr><th>term</th><th>min</th><th>max</th><th>range</th></tr></thead><tbody></tbody></table></div>
+        <div class="chart-wrap" id="rolling-chart"></div>
+      </section>
+
+      <section class="module-section">
+        <h3>7. What the model does and does not explain</h3>
+        <p class="module-lede">The gap between the two lines is cumulative alpha. It makes the intercept tangible, though a visible gap is not evidence on its own; that is what section 2 is for.</p>
+        <div class="chart-wrap" id="cumulative-chart"></div>
+      </section>
+    </div>
+
+    <p class="disclaimer">Data: Ken French Data Library (Dartmouth) for factors and industry portfolios, Yahoo Finance via yfinance for individual tickers, with bundled fallback snapshots. The momentum signal, regression, diagnostics, and rolling estimates all run client-side in your browser; a small backend is used only for live data refresh and ticker lookups. See the <a href="https://github.com/bryanmehsmith/factor-regression-lab" target="_blank" rel="noopener">Python reference implementation and tests</a> this is ported from. For research and education only, not investment advice.</p>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -10,4 +10,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
-CMD ["streamlit", "run", "app/streamlit_app.py", "--server.port=8000", "--server.address=0.0.0.0", "--server.headless=true"]
+# The interactive demo is now the static frontend/ (open frontend/index.html
+# via any static file server), so this image serves only the small backend
+# behind live data refresh and ticker lookups. See README.md's Usage section.
+CMD ["python", "app/api.py", "--port=8000", "--host=0.0.0.0"]

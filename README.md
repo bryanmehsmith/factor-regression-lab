@@ -61,10 +61,23 @@ uv sync
 
 ## Usage
 
-Run the interactive app:
+The interactive version of this is a static JS frontend (`frontend/`), not a
+Streamlit app: it ports `regression.py`/`diagnostics.py`/`rolling.py` directly
+into JS (`frontend/js/modules/`) and runs client-side against bundled monthly
+snapshots. Open `frontend/index.html` through any static file server, e.g.:
 
 ```bash
-uv run streamlit run app/streamlit_app.py
+cd frontend && python -m http.server
+```
+
+`app/api.py` is a small companion JSON API, used only for live French-data
+refresh and free-text Yahoo Finance ticker lookups:
+
+```bash
+uv run python app/api.py --port=8000
+# GET http://127.0.0.1:8000/factors?refresh=true
+# GET http://127.0.0.1:8000/industries?refresh=true
+# GET http://127.0.0.1:8000/ticker?symbol=AAPL
 ```
 
 Print the same analysis as a text report:
@@ -80,10 +93,28 @@ Run tests:
 uv run pytest
 ```
 
-Rebuild the bundled fallback snapshots from a fresh download:
+Rebuild the bundled fallback snapshots from a fresh download, then regenerate
+the frontend's JSON copies:
 
 ```bash
 uv run scripts/refresh_snapshot.py
+uv run scripts/export_snapshot_json.py
+```
+
+The JS port is checked against the Python reference implementation before
+being trusted, not just eyeballed: `scripts/export_regression_fixtures.py`
+fits a battery of synthetic frames (clean, autocorrelated, heteroskedastic,
+varying sample sizes) with the real `regression.py`/`diagnostics.py`/`rolling.py`,
+and `scripts/verify_stats_parity.mjs` recomputes everything in JS and diffs.
+`scripts/export_dist_reference.py` + `scripts/verify_distributions.mjs` do the
+same for the hand-rolled t/F/chi-square distribution functions against scipy.
+Re-run both whenever either side changes:
+
+```bash
+uv run scripts/export_regression_fixtures.py
+uv run scripts/export_dist_reference.py
+node scripts/verify_stats_parity.mjs
+node scripts/verify_distributions.mjs
 ```
 
 ## Data
@@ -98,9 +129,12 @@ Both paths degrade rather than crash: fresh cache, then live download, then stal
 - `src/factor_lab/regression.py` - OLS fitting, the coefficient table, the three-way standard-error comparison, and nested model tests
 - `src/factor_lab/diagnostics.py` - Breusch-Pagan, Durbin-Watson, Ljung-Box, Jarque-Bera, VIF, each with a plain-language reading
 - `src/factor_lab/rolling.py` - rolling-window estimation and a stability summary
-- `src/factor_lab/plots.py` - matplotlib figures
+- `src/factor_lab/plots.py` - matplotlib figures (used by the CLI report; the frontend has its own SVG charts)
 - `src/factor_lab/cli.py` - the text report
-- `app/streamlit_app.py` - the interactive demo
+- `app/api.py` - tiny JSON API backing the frontend's live-refresh and ticker lookup
+- `frontend/` - the static JS demo: the above three `factor_lab` modules ported to `frontend/js/modules/{regression,diagnostics,rolling}.js`, plus hand-rolled t/F/chi-square distribution functions in `distributions.js`
+- `scripts/export_snapshot_json.py` - exports the bundled French snapshots as JSON for the frontend
+- `scripts/export_regression_fixtures.py` / `export_dist_reference.py` + `scripts/verify_stats_parity.mjs` / `verify_distributions.mjs` - the JS-vs-Python parity check described above
 - `tests/` - synthetic-data tests with known parameters, including a coverage simulation for the confidence intervals and a check that HAC standard errors exceed classical ones under injected autocorrelation
 - `data/` - gitignored cache of downloaded data
 

@@ -8,6 +8,11 @@ __pycache__/
 # Data cache
 data/
 
+# Generated JS-vs-Python parity fixtures (scripts/export_regression_fixtures.py,
+# scripts/export_dist_reference.py); regenerate rather than commit.
+scripts/regression_fixtures.json
+scripts/dist_reference.json
+
 # Env / secrets
 .env
 
