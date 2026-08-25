@@ -113,8 +113,7 @@ Re-run both whenever either side changes:
 ```bash
 uv run scripts/export_regression_fixtures.py
 uv run scripts/export_dist_reference.py
-node scripts/verify_stats_parity.mjs
-node scripts/verify_distributions.mjs
+cd scripts && node verify_stats_parity.mjs && node verify_distributions.mjs && cd ..
 ```
 
 ## Data
