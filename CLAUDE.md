@@ -37,6 +37,8 @@ Both French factors and yfinance ticker data degrade through: fresh cache → li
 
 See `.claude/skills/verify` - the parity-script step is the part most worth not skipping, since it's the only thing standing between "the Python side is right" and "the deployed JS demo is right."
 
+While iterating on one module, run `uv run pytest -k <module>` instead of the full suite; run the full `uv run pytest` before calling verification done.
+
 ## Deployment
 
 Pulled into `demo-site` as a git submodule at `apps/factor-regression`, sharing demo-site's root `uv` workspace venv with `momentum-factor` (bumped to the same pandas/pyarrow floor for that reason - the old `pyarrow<19` Streamlit-SIGSEGV cap no longer applies to either, see demo-site's `CLAUDE.md`). A push to this repo's `main` triggers `.github/workflows/bump-demo-site.yml`, which bumps the submodule pointer in `demo-site` (requires a `DEMO_SITE_PAT` secret). `.github/workflows/test.yml` runs `uv run pytest` on push/PR and gates the bump.
