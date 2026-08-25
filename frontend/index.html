@@ -20,18 +20,31 @@
   <main>
     <p class="intro">When an asset beats the market, is that skill or is it factor exposure? Regress its excess return on the Fama-French factors: the intercept is what the factors cannot explain, and the standard errors decide whether that intercept means anything.</p>
 
+    <section class="module-section" id="orientation">
+      <p class="module-kicker">Start here</p>
+      <h2>What this lab walks through</h2>
+      <p class="module-lede">You're about to fit the same regression several different ways and watch how much the answer moves. Sections 1 and 2 build the two ideas everything else depends on: why alpha only means anything relative to a chosen model, and why the standard error you pick can turn a "significant" result into a coin flip. Section 3 is where you take over: pick an asset, a factor model, and a standard-error method, and sections 4 through 10 walk through what that regression actually produced, one question at a time.</p>
+      <p>No statistics background is assumed going in. Each section opens with a plain-language paragraph; the formulas are folded under <strong>"Technical detail"</strong> for whenever you want the rigor instead of the intuition.</p>
+      <p><strong>Suggested path:</strong></p>
+      <ol>
+        <li><strong>1-2. The two ideas</strong>: why alpha is model-relative, and why the standard-error method decides whether it's real.</li>
+        <li><strong>3. Try it</strong>: pick your asset, factor model, and standard-error method.</li>
+        <li><strong>4-10. The results</strong>: coefficients, the three-way standard-error comparison, whether the richer model earns its place, whether the OLS assumptions hold, multicollinearity, parameter stability, and what's left unexplained.</li>
+      </ol>
+    </section>
+
     <section class="module-section">
-      <h3>Why alpha only means something relative to a model</h3>
-      <p>"This fund returned 14% a year" is not a finding. The question is always 14% <em>compared to what</em>, and the honest comparison is not a single index but a set of systematic risks the investor could have taken deliberately and cheaply. That comparison is a regression: take an asset's return in excess of the risk-free rate, and explain it with the returns of portfolios built to capture known systematic exposures.</p>
+      <h3>1. Why alpha only means something relative to a model</h3>
+      <p class="module-lede">"This fund returned 14% a year" is not a finding. The question is always 14% <em>compared to what</em>, and the honest comparison is not a single index but a set of systematic risks the investor could have taken deliberately and cheaply. That comparison is a regression: take an asset's return in excess of the risk-free rate, and explain it with the returns of portfolios built to capture known systematic exposures. Section 3 below is where you pick the model yourself; watching alpha move as you switch between them is the fastest way to see this idea work.</p>
       <details class="tech">
         <summary>Technical detail</summary>
-        <p>\[ R_i - R_f = \alpha + \beta_1(\text{Mkt-RF}) + \beta_2\,\text{SMB} + \beta_3\,\text{HML} + \cdots + \varepsilon \] Each beta says how much of the asset's behaviour is that exposure. Alpha, the intercept, is the average monthly return the factors fail to explain, and it is defined entirely by which factors sit on the right-hand side: add a factor that genuinely drives the asset and alpha shrinks, since the "skill" was an exposure not yet named. <strong>CAPM</strong> is the market alone; <strong>FF3</strong> adds size (SMB) and value (HML); <strong>FF5</strong> adds profitability (RMW) and investment (CMA); <strong>FF5+Mom</strong> adds momentum. Mkt-RF, SMB and HML all come from the 5-factor file rather than the standalone 3-factor file (which defines SMB slightly differently and starts in a different year), keeping FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test below valid.</p>
+        <p>\[ R_i - R_f = \alpha + \beta_1(\text{Mkt-RF}) + \beta_2\,\text{SMB} + \beta_3\,\text{HML} + \cdots + \varepsilon \] Each beta says how much of the asset's behaviour is that exposure. Alpha, the intercept, is the average monthly return the factors fail to explain, and it is defined entirely by which factors sit on the right-hand side: add a factor that genuinely drives the asset and alpha shrinks, since the "skill" was an exposure not yet named. <strong>CAPM</strong> is the market alone; <strong>FF3</strong> adds size (SMB) and value (HML); <strong>FF5</strong> adds profitability (RMW) and investment (CMA); <strong>FF5+Mom</strong> adds momentum. Mkt-RF, SMB and HML all come from the 5-factor file rather than the standalone 3-factor file (which defines SMB slightly differently and starts in a different year), keeping FF3 a genuine subset of FF5 over an identical sample, which is what makes the nested test in section 6 valid.</p>
       </details>
     </section>
 
     <section class="module-section">
-      <h3>Why the standard error decides the answer</h3>
-      <p>Getting alpha is easy. Deciding whether it is distinguishable from zero is where the work is, and it depends on assumptions about the residuals that are rarely stated out loud. The point estimate never changes; what changes is the standard error, and with it the t-statistic.</p>
+      <h3>2. Why the standard error decides the answer</h3>
+      <p class="module-lede">Getting alpha is easy. Deciding whether it is distinguishable from zero is where the work is, and it depends on assumptions about the residuals that are rarely stated out loud. The point estimate never changes; what changes is the standard error, and with it the t-statistic. Section 3 lets you choose which of the three below to trust for the headline number, and section 5 puts all three side by side so you can watch the gap.</p>
       <details class="tech">
         <summary>Technical detail</summary>
         <p><strong>Classical (OLS)</strong> assumes residuals are independent with constant variance; asset returns violate both. <strong>White (HC1)</strong> drops constant variance, accounting for volatility clustering. <strong>Newey-West (HAC)</strong> additionally allows residuals to be correlated across months, which matters most: positive residual autocorrelation makes several hundred monthly observations behave like far fewer independent ones, so classical errors understate uncertainty and inflate the t-statistic. An alpha whose t-statistic clears 1.96 under classical errors but not under Newey-West was never really significant. The HAC lag length is a judgment call exposed as a control below rather than hidden; the common default is \(\left\lfloor 4\left(\frac{n}{100}\right)^{2/9}\right\rfloor\), but nothing makes it correct.</p>
@@ -39,7 +52,8 @@
     </section>
 
     <section class="module-section" id="widget">
-      <h3>Try it</h3>
+      <h3>3. Try it</h3>
+      <p class="module-lede">Pick a test asset, a factor model, and how the standard errors get computed. Sections 4 through 10 below recompute live from whatever you choose here.</p>
       <div class="field-row">
         <div class="field">
           <label>Test asset from</label>
@@ -121,13 +135,13 @@
       </section>
 
       <section class="module-section">
-        <h3>1. Coefficients</h3>
+        <h3>4. Coefficients</h3>
         <p class="module-lede"><code>alpha</code> is the monthly intercept: average excess return the factors leave unexplained. Each beta is the asset's exposure to that factor. The confidence interval is the range of values the data cannot rule out at 95%.</p>
         <div class="table-wrap"><table id="coefficient-table"><thead><tr><th>term</th><th>estimate</th><th>std error</th><th>t stat</th><th>p value</th><th>95% CI</th></tr></thead><tbody></tbody></table></div>
       </section>
 
       <section class="module-section">
-        <h3>2. The same regression, three assumptions about the residuals</h3>
+        <h3>5. The same regression, three assumptions about the residuals</h3>
         <p class="module-lede">The estimates in these three blocks are identical; only the uncertainty around them changes. Each weaker assumption is more honest and usually widens the interval, so a t-statistic that clears 1.96 in the first column and not the third was never really significant.</p>
         <div class="chart-wrap" id="tstat-chart"></div>
         <details class="tech">
@@ -137,7 +151,7 @@
       </section>
 
       <section class="module-section" id="nested-section">
-        <h3>3. Does the richer model earn its place?</h3>
+        <h3>6. Does the richer model earn its place?</h3>
         <p class="module-lede" id="nested-caption"></p>
         <div id="nested-body">
           <div class="metric-row">
@@ -150,8 +164,8 @@
       </section>
 
       <section class="module-section">
-        <h3>4. Are the OLS assumptions actually met?</h3>
-        <p class="module-lede">These tests decide which column in section 2 deserves to be quoted. The residual plots show the same thing visually.</p>
+        <h3>7. Are the OLS assumptions actually met?</h3>
+        <p class="module-lede">These tests decide which column in section 5 deserves to be quoted. The residual plots show the same thing visually.</p>
         <div class="table-wrap"><table id="diagnostics-table"><thead><tr><th>test</th><th>statistic</th><th>p value</th><th>null hypothesis</th><th>flag</th></tr></thead><tbody></tbody></table></div>
         <div id="diagnostics-details"></div>
         <div class="diagnostics-grid">
@@ -163,7 +177,7 @@
       </section>
 
       <section class="module-section">
-        <h3>5. Can the individual betas be trusted?</h3>
+        <h3>8. Can the individual betas be trusted?</h3>
         <p class="module-lede">Correlated factors inflate each other's standard errors. A high VIF does not bias the estimates or spoil the fit; it means that particular coefficient is hard to pin down, which is how a model can be jointly strong with no individually significant factor.</p>
         <div class="field-row">
           <div class="field" style="flex:1;"><div class="table-wrap"><table id="vif-table"><thead><tr><th>regressor</th><th>VIF</th></tr></thead><tbody></tbody></table></div></div>
@@ -172,7 +186,7 @@
       </section>
 
       <section class="module-section">
-        <h3>6. Is one number per factor even the right summary?</h3>
+        <h3>9. Is one number per factor even the right summary?</h3>
         <p class="module-lede">Re-estimating over a rolling window shows how much the full-sample coefficients are averages of genuinely different regimes. Bands are indicative classical intervals.</p>
         <div class="field">
           <label for="rolling-term-select">Show rolling estimate for</label>
@@ -183,8 +197,8 @@
       </section>
 
       <section class="module-section">
-        <h3>7. What the model does and does not explain</h3>
-        <p class="module-lede">The gap between the two lines is cumulative alpha. It makes the intercept tangible, though a visible gap is not evidence on its own; that is what section 2 is for.</p>
+        <h3>10. What the model does and does not explain</h3>
+        <p class="module-lede">The gap between the two lines is cumulative alpha. It makes the intercept tangible, though a visible gap is not evidence on its own; that is what section 5 is for.</p>
         <div class="chart-wrap" id="cumulative-chart"></div>
       </section>
     </div>

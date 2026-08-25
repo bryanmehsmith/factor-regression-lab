@@ -105,6 +105,21 @@ main {
   margin: 0 0 16px;
 }
 
+.module-kicker {
+  color: var(--accent-color);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+#orientation h2 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
 /* Technical detail disclosure */
 .disclosure-controls {
   display: flex;
