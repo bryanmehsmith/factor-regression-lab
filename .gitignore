@@ -5,8 +5,8 @@ __pycache__/
 .venv/
 .pytest_cache/
 
-# Data cache
-data/
+# Root data cache. Bundled frontend data under frontend/js/data is deployed.
+/data/
 
 # Generated JS-vs-Python parity fixtures (scripts/export_regression_fixtures.py,
 # scripts/export_dist_reference.py); regenerate rather than commit.

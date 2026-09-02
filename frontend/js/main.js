@@ -411,7 +411,7 @@ liveRefresh.addEventListener("change", async () => {
     liveStatus.textContent = "Live data loaded.";
     safeRecompute();
   } catch (err) {
-    liveStatus.textContent = `Live refresh failed (${err.message}); showing the bundled snapshot instead.`;
+    liveStatus.textContent = `Live refresh failed (${err.message}); showing synthetic demo data instead.`;
     liveRefresh.checked = false;
     liveFactors = null; liveIndustries = null;
   } finally {
@@ -436,5 +436,5 @@ async function init() {
 
 init().catch((err) => {
   console.error(err);
-  liveStatus.textContent = "Could not load the bundled factor/industry data.";
+  liveStatus.textContent = "Could not load the bundled synthetic factor/industry data.";
 });
