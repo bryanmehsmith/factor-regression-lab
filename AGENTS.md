@@ -1,6 +1,6 @@
-# CLAUDE.md
+# Codex Agent Instructions
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex and other coding agents working in this repository.
 
 ## What this is
 
@@ -41,7 +41,7 @@ While iterating on one module, run `uv run pytest -k <module>` instead of the fu
 
 ## Deployment
 
-Pulled into `demo-site` as a git submodule at `apps/factor-regression`, sharing demo-site's root `uv` workspace venv with `momentum-factor` (bumped to the same pandas/pyarrow floor for that reason - the old `pyarrow<19` Streamlit-SIGSEGV cap no longer applies to either, see demo-site's `CLAUDE.md`). A push to this repo's `main` triggers `.github/workflows/bump-demo-site.yml`, which bumps the submodule pointer in `demo-site` (requires a `DEMO_SITE_PAT` secret). `.github/workflows/test.yml` runs `uv run pytest` on push/PR and gates the bump.
+Pulled into `demo-site` as a git submodule at `apps/factor-regression`, sharing demo-site's root `uv` workspace venv with `momentum-factor` (bumped to the same pandas/pyarrow floor for that reason - the old `pyarrow<19` Streamlit-SIGSEGV cap no longer applies to either, see demo-site's `AGENTS.md`). A push to this repo's `main` triggers `.github/workflows/bump-demo-site.yml`, which bumps the submodule pointer in `demo-site` (requires a `DEMO_SITE_PAT` secret). `.github/workflows/test.yml` runs `uv run pytest` on push/PR and gates the bump.
 
 ## Scope
 
